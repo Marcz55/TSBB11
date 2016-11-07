@@ -15,7 +15,6 @@ cameraHeight = 1							#The height above the ground where the images will be ren
 numZAngles = 16								#The amount of images that will be rendered rotated around the Z-axis
 numTiltAngles = 4							#The amount of images with different tilt angles between -25 and 25 degrees
 
-
 #Set path
 import bpy, mathutils, math, numpy
 
@@ -24,6 +23,7 @@ import bpy, mathutils, math, numpy
 targetModel = bpy.data.objects[targetModelName]
 Scene = bpy.data.scenes["Scene"]
 Scene.render.image_settings.file_format = 'PNG'
+Camera = bpy.data.objects["Camera"]
 
 #Center camera in global coordinates
 bpy.context.scene.objects.active = Camera
@@ -147,8 +147,34 @@ def worldToImage(input):
 
 def imageToWorld(input):
     InvP = numpy.linalg.pinv(getP())
-    output = InvP*input
+    InvP_copy = Matrix([[InvP[0][0],InvP[0][1],InvP[0][2]],
+                         [InvP[1][0],InvP[1][1],InvP[1][2]],
+                         [InvP[2][0],InvP[2][1],InvP[2][2]],
+                         [InvP[3][0],InvP[3][1],InvP[3][2]]])
+    output = InvP_copy*input
     output = output/output[3]
     return output
       
+def test(input,object):
+    rayLocation = Vector((0,0,0))
+    imageCoord = worldToImage(input)
+    xPoint = imageToWorld(imageCoord)
+    xPoint = Vector((xPoint[0],xPoint[1],xPoint[2]))
+    localObj = object.matrix_world.inverted()*object.location
+    localCamera = object.matrix_world.inverted()*Camera.location
+    localXpoint = object.matrix_world.inverted()*xPoint
+    direction = localXpoint-localCamera
+    rayResult = object.ray_cast(localCamera,direction)
+    if (rayResult[0]):
+        rayLocation = object.matrix_world*rayResult[1]
+    return rayLocation
 
+#hejvektor = Vector((1.01,-1,-1,1))
+#hejkoord = worldToImage(hejvektor)
+#xPoint = imageToWorld(hejkoord)
+#xPoint = Vector((xPoint[0],xPoint[1],xPoint[2]))
+#localObj = kub.matrix_world.inverted()*kub.location
+#localCamera = kub.matrix_world.inverted()*Camera.location
+#localXpoint = kub.matrix_world.inverted()*xPoint
+#direction = localXpoint-localCamera
+#rayResult = kub.ray_cast(localCamera,direction)
