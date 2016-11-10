@@ -8,7 +8,8 @@ import time
 def main(argv):
 	path_to_folder = sys.argv[1]
 	dest_path = sys.argv[2]
-
+	os.path.dir(path_to_folder)
+	os.path.dir(dest_path)
 	#Thresholds can be changed.
 	thres_blue = 0.4
 	thres_green = 0.3
@@ -22,27 +23,27 @@ def main(argv):
 		if image.endswith('.png'):
 			path_to_image = path_to_folder + '/' + image
 			img = cv2.imread(path_to_image)
-			no_blue, no_green = count_pixels(img,height,width)
+			no_blue = count_pixels(img,height,width)
 			percent_blue = no_blue/float(tot_pixels) 
-			percent_green = no_green/float(tot_pixels)
-			percent_bad = (no_green + no_blue)/float(tot_pixels)
+			#percent_green = no_green/float(tot_pixels)
+			#percent_bad = (no_green + no_blue)/float(tot_pixels)
 			#print percent_blue, percent_green
-			if thres_blue < percent_blue:
+			if percent_blue > thres_blue:
 				shutil.move(path_to_image, dest_path)
 	t1 = time.time()
 	print t1-t0
 
 def count_pixels(img, height, width):
 	no_blue_pixels = 0
-	no_green_pixels = 0
+	#no_green_pixels = 0
 	for i in range (0,height):
 		for j in range(0,width):
 			b,g,r = img[i,j]
 			if b > (r + 10) and b > (g + 10):
 				no_blue_pixels += 1
-			if g > (r + 10) and g > (b + 10) :
-				no_green_pixels += 1
-	return no_blue_pixels, no_green_pixels
+			#if g > (r + 10) and g > (b + 10) :
+				#no_green_pixels += 1
+	return no_blue_pixels#, no_green_pixels
 
 
 if __name__ == '__main__':
