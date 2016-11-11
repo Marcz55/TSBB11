@@ -1,17 +1,17 @@
 #!BPY
 
 """
-Name: 'Pose enhancement
+Name: 'Pose enhancement'
 Blender: 277
 """
 import bpy, mathutils, math, numpy
+from mathutils import Vector
+from mathutils import Matrix
+from math import tan
 
 targetModelName = "teknikringen8"			#Name of model in Blender workspace
-saveFilepath = "C:\\CDIO\\Tagna_bilder\\"	#The filepath to which the rendered images will be 
-cameraTilt = 0;
-cameraAngle = 0;
-cameraX = 114;
-cameraY = 45;
+dataFilepath = "C:\\CDIO\\Skript\\query.npy"	#The filepath to which the rendered images will be
+saveFilepath =  "C:\\CDIO\\Skript\\3Dresultat"
 cameraHeight = 1;
 
 #Assign objects
@@ -19,8 +19,12 @@ cameraHeight = 1;
 targetModel = bpy.data.objects[targetModelName]
 Scene = bpy.data.scenes["Scene"]
 Camera = bpy.data.objects["Camera"]
+#Query = numpy.load(dataFilepath + "query.npy") #En testbild
+#Train = numpy.load(dataFilepath + "train.npy") #En till testbild
+pointList = numpy.load(dataFilepath)
 
 #Center camera in global coordinates
+Vector((0,0,0))
 localCamera = targetModel.matrix_world.inverted()*Vector((cameraX,cameraY,0))
 depthCast = targetModel.ray_cast([localCamera[0],localCamera[1],100],[0,0,-1])
 depthCastGlobal = targetModel.matrix_world*depthCast[1]
@@ -86,20 +90,39 @@ def test(input,object):
     localObj = object.matrix_world.inverted()*object.location
     localCamera = object.matrix_world.inverted()*Camera.location
     localXpoint = object.matrix_world.inverted()*xPoint
-    direction = localXpoint-localCamera
+    direction = -(localXpoint-localCamera) #Inverterat, ty vi tittar i den första kvadranten
     rayResult = object.ray_cast(localCamera,direction)
     if (rayResult[0]):
         rayLocation = object.matrix_world*rayResult[1]
     return rayLocation
 
 def get3D(imageCoord,object):
+    rayLocation = Vector((0,0,0))
     xPoint = imageToWorld(imageCoord)
     xPoint = Vector((xPoint[0],xPoint[1],xPoint[2]))
     localObj = object.matrix_world.inverted()*object.location
     localCamera = object.matrix_world.inverted()*Camera.location
     localXpoint = object.matrix_world.inverted()*xPoint
-    direction = localXpoint-localCamera
+    direction = -(localXpoint-localCamera)
     rayResult = object.ray_cast(localCamera,direction)
     if (rayResult[0]):
         rayLocation = object.matrix_world*rayResult[1]
     return rayLocation
+
+def run(pointList,targetModel):
+    cameraX = pointList[0][0];
+    cameraY = pointList[0][1];
+    cameraTilt = pointList[1][0];
+    cameraAngle = pointList[1][1];
+    output = numpy.zeros((pointList.shape[0]-2,pointList.shape[1]))
+    for row in range (2,pointList.shape[0]):
+        currentPoint = Vector((pointList[row][0],pointList[row][1],pointList[row][2]))
+        worldCoordResult = get3D(currentPoint,targetModel)
+        output[row][0] = worldCoordResult[0]
+        output[row][1] = worldCoordResult[1]
+        output[row][2] = worldCoordResult[2]
+    return output        
+
+outputPoints = run(pointList,targetModel)
+
+numpy.save(saveFilepath,outputPoints)
