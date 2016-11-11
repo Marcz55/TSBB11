@@ -1,6 +1,13 @@
 # This script is going to refine the camera poses from the neural network with the help of Perspektive-n-point algorithm (PnP)
 # It takes three inarguments, the file with the camera matrix, path to two images, one rendered from the 3D image and one query image taken with the camera and finds the correpsonding 2D and 3D points in the images and performs PnP.
 
+# What do we need to do a PnP?
+	# camera matrix : read in file with provided camera matrix 
+	# 2D homogenous corresponding points (query image)
+	# 3D homogenous corresponding points (rendered image)
+import numpy as np
+import cv2
+
 def main(argv):
 
 	txt_path = sys.argv[1]
@@ -8,7 +15,7 @@ def main(argv):
 	twoD_corres = sys.argv[3]
 	#iteration = sys.argv[4]
 	iteration = 100
-	confidence = 
+	#confidence = 
 	twoD_corres = conv_to_euclid_coord(twoD_corres,2)
 	threeD_corres = conv_to_euclid_coord(threeD_corres,3)
 
@@ -19,7 +26,7 @@ def main(argv):
 	retval_corse, rvec_corse, tvec_corse = cv2.solvePnP(threeD_corres, twoD_corres, camera_mtx, 0 , SOLVEPNP_P3P)
 
 	# Use Ransac to get a finer estimation, does not take homogenous coordinates
-	rvec_ransac, tvec_ransac, inliers_ransac = cv2.calibrateCamera(threeD_corres, twoD_corres, camera_mtx, 0, rvec_corse, tvec_corse, SOLVEPNP_ITERATIVE = 1, iteration)
+	rvec_ransac, tvec_ransac, inliers_ransac = cv2.calibrateCamera(threeD_corres, twoD_corres, camera_mtx, 0, rvec_corse, tvec_corse, SOLVEPNP_ITERATIVE, iteration)
 	# Obtains the camera position 
 	R_transpose = rvec_ransac.transpose()
 	camera_pos = -R_transpose*tvec_ransac

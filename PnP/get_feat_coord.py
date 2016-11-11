@@ -3,24 +3,23 @@
 import cv2, os, sys
 import numpy as np
 import pdb
-from draw_matches import * 
-
-# What do we need to do a PnP?
-	# camera matrix : read in file with provided camera matrix 
-	# 2D homogenous corresponding points (query image)
-	# 3D homogenous corresponding points (rendered image)
+from tempfile import TemporaryFile
 
 # User input it text file with narrative camera parameters, location to queryImage and trainImage, primary camera pos from NN:
 def main(argv):
 
 	# uncomment these when the code are working, the user should give the script two images
-	#img1 = sys.argv[1]
-	#img2 = sys.argv[2]
+	#image1 = sys.argv[1]
+	#image2 = sys.argv[2]
 
-	img1 = cv2.imread('TRtest_x24_y152_a308_t-3.png',0) # queryImage, grayscale
-	img2 = cv2.imread('TRtest_x24_y160_a264_t-25.png',0) # trainImage, grayscale
+	img1 = cv2.imread('../bilder/TRtest_x104_y24_a0_t-3.png',0) # queryImage, grayscale
+	img2 = cv2.imread('../bilder/TRtest_x104_y24_a352_t-25.png',0) # trainImage, grayscale
 	coord_img1, coord_img2 = corresponding_twoD_points(img1, img2)
-	print coord_img2.shape
+	#queryImage_name = os.path.basename(image1)
+	#trainImage_name = os.path.basename(image2)
+
+	save_to_file('train', coord_img2)
+	save_to_file('query', coord_img1)
 
 # Takes two images, one rendered from the camera pose in the 3D model
 # and the other one is the image taken with the camera, the two images has the same size
@@ -49,13 +48,7 @@ def corresponding_twoD_points(rendered_image, real_image):
 
 	# convert the matches to coordinates in image
 	coord_img1, coord_img2 = get_coordinates(matches, kp1, kp2)
-	#######
-	surf = cv2.surf()
-	key1,descr1 = surf.detectAndCompute(img1,None)
-	key2,descr2 = surf.detectAndCompute(img2,None)
 
-	# Show matches
-	#drawMatches(img1, kp1, img2, kp2, matches[:20])
 	return coord_img1, coord_img2
 
 # Converts the matching points to homogenous (x,y) coordinated
@@ -84,6 +77,9 @@ def get_coordinates(matches, kp1, kp2):
 		i = i +1
 	return array_kp1, array_kp2
 
+# Save the correpsonding 2D points of each image to file with same name
+def save_to_file(file_name, coordinates):
+	np.save(file_name, coordinates)
 
 if __name__ == "__main__":
 	main(sys.argv[1:])
