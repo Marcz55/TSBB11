@@ -80,7 +80,6 @@ def get_coordinates(matches, kp1, kp2):
 	# Get the coordinates
 		x1,y1 = kp1[img1_idx].pt
 		x2,y2 = kp2[img2_idx].pt
-
 	# Append to each list , homogenous coordiates
 		array_kp1[i,:] = [x1,y1,1]
 		array_kp2[i,:] = [x2,y2,1]

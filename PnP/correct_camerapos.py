@@ -6,46 +6,44 @@
 	# 2D homogenous corresponding points (query image)
 	# 3D homogenous corresponding points (rendered image)
 import numpy as np
-import cv2
+import cv2,sys
 
 def main(argv):
 
-	txt_path = sys.argv[1]
-	threeD_corres = sys.argv[2]
-	twoD_corres = sys.argv[3]
-	#iteration = sys.argv[4]
-	iteration = 100
-	#confidence = 
-	twoD_corres = conv_to_euclid_coord(twoD_corres,2)
-	threeD_corres = conv_to_euclid_coord(threeD_corres,3)
+	camera_mtx = np.loadtxt(sys.argv[1], delimiter = " ")
+	threeD_corres = np.load(sys.argv[2]) # Nonhomogenous
+	twoD_corres = np.load(sys.argv[3])
+	distCoeffs = np.zeros((5,1))
 
-	#This camera matrix should be the camera matrix from the camera used to rendered images
-	camera_mtx = camera_mtx_from_file(txt_path)
+	tmp_array = np.zeros((587,2))
+	for i in range(0,586):
+		for j in range(0,2):
+			tmp_array[i][j] = twoD_corres[i][j]
 
-	# Returns a corse estimate of the camera pose, does not take homogenous coordinates
-	retval_corse, rvec_corse, tvec_corse = cv2.solvePnP(threeD_corres, twoD_corres, camera_mtx, 0 , SOLVEPNP_P3P)
+	twoD_corres = tmp_array
 
+	# reshape to the correct size that PnP wants
+	threeD_corres_reshape = np.reshape(threeD_corres, (-1,3,1))
+	twoD_corres_reshape = np.reshape(twoD_corres, (-1,2,1))
+	twoD_corres_reshape.astype(float)
+
+	distCoeffs = np.zeros((5,1))
+
+	retval, rvec, tvec = cv2.solvePnP(threeD_corres
+	, twoD_corres, camera_mtx, distCoeffs)
+
+	'''
 	# Use Ransac to get a finer estimation, does not take homogenous coordinates
-	rvec_ransac, tvec_ransac, inliers_ransac = cv2.calibrateCamera(threeD_corres, twoD_corres, camera_mtx, 0, rvec_corse, tvec_corse, SOLVEPNP_ITERATIVE, iteration)
+	rvec_ransac, tvec_ransac, inliers_ransac = cv2.SOLVEPNP_P3P(threeD_corres, twoD_corres, camera_mtx, 0, rvec_corse, tvec_corse, SOLVEPNP_ITERATIVE, iteration)
+	'''
+
 	# Obtains the camera position 
-	R_transpose = rvec_ransac.transpose()
-	camera_pos = -R_transpose*tvec_ransac
+	R_transpose = rvec.transpose()
+	camera_pos = -rvec*tvec
+	print camera_pos
 
-# this function takes a text file with camera matrix and returns the camera matrix as a numpy matrix
-# Returns camera matrix
-def camera_mtx_from_file(txt_path):
-	file = open(txt_path,'r')
-	tmp_list = []
-	K = np.empty([3,3], dtype = float)
-	i = 0
-	for line in file:
-		line = line.replace(';', '' )
-		x,y,z =  (line.split(","))
-		K[i][0] = float(x)
-		K[i][1] = float(y)
-		K[i][2] = float(z)
-	return K
 
+# Convert from homogenous points to euclidian points
 def conv_to_euclid_coord(points, dim):
 	size = points.shape
 	if not dim == size[1]:
@@ -53,8 +51,6 @@ def conv_to_euclid_coord(points, dim):
 	else:
 		coord = points
 	return coord
-
-
 
 if __name__ == "__main__":
 	main(sys.argv[1:])

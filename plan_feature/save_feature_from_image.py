@@ -5,8 +5,8 @@ import numpy as np
 import cPickle as pickle
 from multiprocessing import Pool
 
-# SURF extraction
-surf = cv2.SURF()
+# orh extraction
+orb = cv2.orb()
 path_to_folder = sys.argv[1]
 path_save_folder= sys.argv[2]
 
@@ -30,7 +30,7 @@ def main():
 def find_keypoints(image):
 	image_name = os.path.basename(image)
 	file_name = path_save_folder + image_name + '.p'
-	kp,des = surf.detectAndCompute(image,None)
+	kp,des = orb.detectAndCompute(image,None)
 	
 	#Store and Retrieve keypoint features
 	temp_array = []
