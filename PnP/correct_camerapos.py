@@ -27,13 +27,14 @@ def main(argv):
 	# project 3D points to image plane
 	imgpts, jac = cv2.projectPoints(threeD_corres, rvecs, tvecs, camera_mtx, dist_Coeffs)
 
-	rvec_ransac, tvec_ransac, inliners = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs) 
+	rvec_ransac, tvec_ransac, inliners = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvecs,tvecs,1,1000, 1) 
 
 	imgpts_ransac, jac_ransac = cv2.projectPoints(threeD_corres,rvec_ransac,tvec_ransac,camera_mtx,dist_Coeffs)
 
 	threeD_corres_reshape = np.reshape(threeD_corres, (-1,3,1))
 	twoD_corres_reshape = np.reshape(twoD_corres, (-1,2,1))
-
+	print "lenght of inliers:", len(inliners)
+	print "lenght of all:", len(twoD_corres)
 	# Calculate the mean projection error
 	mean_error = mean_reprojection_error(imgpts,twoD_corres,threeD_corres)
 	mean_error_ransac = mean_reprojection_error(imgpts_ransac,twoD_corres,threeD_corres)
@@ -64,7 +65,6 @@ def mean_reprojection_error(repojection_points, ground_truth,corresp_3D):
 		tot_error+=np.sum(np.abs(ground_truth[i]-repojection_points[i])**2)
 		total_points+=len(corresp_3D[i])
 	mean_error=np.sqrt(tot_error/total_points)
-
 
 	return mean_error
 if __name__ == "__main__":
