@@ -1,1 +1,2 @@
-.pyc
+# ignores all .pyc files in the repo
+**.pyc
