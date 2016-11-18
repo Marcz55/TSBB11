@@ -7,6 +7,7 @@ def main(argv):
 	camera_mtx = np.loadtxt(sys.argv[1], delimiter = " ")
 	threeD_tmp = np.load(sys.argv[2]) # Nonhomogenous
 	twoD_tmp = np.load(sys.argv[3])
+
 	distCoeffs = np.zeros((5,1))
 	twoD_tmp = twoD_tmp[2:,:]
 	len_twoD = len(twoD_tmp)
@@ -27,20 +28,25 @@ def main(argv):
 	# project 3D points to image plane
 	imgpts, jac = cv2.projectPoints(threeD_corres, rvecs, tvecs, camera_mtx, dist_Coeffs)
 
-	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvecs,tvecs,1,1000, 1) 
+	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvecs,tvecs,1,1500, 4) 
 
 	imgpts_ransac, jac_ransac = cv2.projectPoints(threeD_corres,rvec_ransac,tvec_ransac,camera_mtx,dist_Coeffs)
 
-	threeD_corres_reshape = np.reshape(threeD_corres, (-1,3,1))
-	twoD_corres_reshape = np.reshape(twoD_corres, (-1,2,1))
+	#threeD_corres_reshape = np.reshape(threeD_corres, (-1,3,1))
+	#twoD_corres_reshape = np.reshape(twoD_corres, (-1,2,1))
 
 	# Calculate the mean projection error
 	mean_error = mean_reprojection_error_all(imgpts,twoD_corres,threeD_corres)
 	mean_error_ransac = mean_reprojection_error_all(imgpts_ransac,twoD_corres,threeD_corres)
-	mean_reprojection_inliers = mean_reprojection_error_inliers(imgpts_ransac,twoD_corres,threeD_corres,inliers)
+
+	if inliers is not None:
+		mean_reprojection_inliers = mean_reprojection_error_inliers(imgpts_ransac,twoD_corres,threeD_corres,inliers)
+		print "Mean repoj error inliers:", mean_reprojection_inliers
+	else:
+		print "No inliers"
 	#print "Mean reprojection error:", mean_error
 	#print "Mean reprojection error RANSAC:", mean_error_ransac
-	print "Mean repoj error inliers:", mean_reprojection_inliers
+
 	# Obtains the camera position 
 	#rotvec = cv2.Rodrigues(rvecs)
 	np_rodrigues = np.asarray(rvecs[:,:],np.float64)
