@@ -27,20 +27,20 @@ def main(argv):
 	# project 3D points to image plane
 	imgpts, jac = cv2.projectPoints(threeD_corres, rvecs, tvecs, camera_mtx, dist_Coeffs)
 
-	rvec_ransac, tvec_ransac, inliners = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvecs,tvecs,1,1000, 1) 
+	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvecs,tvecs,1,1000, 1) 
 
 	imgpts_ransac, jac_ransac = cv2.projectPoints(threeD_corres,rvec_ransac,tvec_ransac,camera_mtx,dist_Coeffs)
 
 	threeD_corres_reshape = np.reshape(threeD_corres, (-1,3,1))
 	twoD_corres_reshape = np.reshape(twoD_corres, (-1,2,1))
-	print "lenght of inliers:", len(inliners)
-	print "lenght of all:", len(twoD_corres)
+
 	# Calculate the mean projection error
-	mean_error = mean_reprojection_error(imgpts,twoD_corres,threeD_corres)
-	mean_error_ransac = mean_reprojection_error(imgpts_ransac,twoD_corres,threeD_corres)
+	mean_error = mean_reprojection_error_all(imgpts,twoD_corres,threeD_corres)
+	mean_error_ransac = mean_reprojection_error_all(imgpts_ransac,twoD_corres,threeD_corres)
+	mean_reprojection_inliers = mean_reprojection_error_inliers(imgpts_ransac,twoD_corres,threeD_corres,inliers)
 	#print "Mean reprojection error:", mean_error
 	#print "Mean reprojection error RANSAC:", mean_error_ransac
-
+	print "Mean repoj error inliers:", mean_reprojection_inliers
 	# Obtains the camera position 
 	#rotvec = cv2.Rodrigues(rvecs)
 	np_rodrigues = np.asarray(rvecs[:,:],np.float64)
@@ -58,14 +58,25 @@ def copy_array(array, len_of_array, dim):
 	return tmp_array
 
 #Compute mean of reprojection error
-def mean_reprojection_error(repojection_points, ground_truth,corresp_3D):
+def mean_reprojection_error_all(repojection_points, ground_truth,corresp_3D):
 	tot_error=0
 	total_points=0
 	for i in range(0,len(repojection_points)):
 		tot_error+=np.sum(np.abs(ground_truth[i]-repojection_points[i])**2)
 		total_points+=len(corresp_3D[i])
 	mean_error=np.sqrt(tot_error/total_points)
-
 	return mean_error
+
+#Compute mean of reprojection error
+def mean_reprojection_error_inliers(repojection_points, ground_truth,corresp_3D,indices):
+	tot_error=0
+	total_points=0
+	for e in indices:
+		tot_error+=np.sum(np.abs(ground_truth[e]-repojection_points[e])**2)
+		total_points+=len(corresp_3D[e])
+	mean_error=np.sqrt(tot_error/total_points)
+	return mean_error
+
+
 if __name__ == "__main__":
 	main(sys.argv[1:])

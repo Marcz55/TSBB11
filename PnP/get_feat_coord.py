@@ -15,8 +15,8 @@ def main(argv):
 	name1 = get_file_name(image1)
 	name2 = get_file_name(image2)
 
-	x_pos1, y_pos1, a_pos1, t_pos1 = get_render_camerapose(name1)
-	x_pos2, y_pos2, a_pos2, t_pos2 = get_render_camerapose(name2)
+	x_pos1, y_pos1, z_pos1, a_pos1, t_pos1 = get_render_camerapose(name1)
+	x_pos2, y_pos2, z_pos2, a_pos2, t_pos2 = get_render_camerapose(name2)
 
 	coord_img1, coord_img2 = corresponding_twoD_points(img1, img2)
 	coord_img1[0,:] = [x_pos1, y_pos1,0]
@@ -97,22 +97,27 @@ def get_file_name(image):
 
 # Get the camera pose which the image is rendered with
 def get_render_camerapose(name):
-	x = re.compile('_x(\d+)')
-	x_pos = x.findall(name)
-	x_pos = int(x_pos[0])
-	
-	y = re.compile('_y(\d+)')
-	y_pos = y.findall(name)
-	y_pos = int(y_pos[0])
+	x = re.compile('(?<=_x)(.*?)(?=_y)')
+	x_pos = x.findall(name)[0].replace('_','.')
+	x_pos = float(x_pos)
 
-	a = re.compile('_a(\d+)')
-	a_pos = a.findall(name)
-	a_pos = int(a_pos[0])
+	y = re.compile('(?<=_y)(.*?)(?=_z)')
+	y_pos = y.findall(name)[0].replace('_','.')
+	y_pos = float(y_pos)
 
-	t = re.compile('_t(.*)')
-	t_pos = t.findall(name)
-	t_pos = int(t_pos[0])
-	return x_pos, y_pos, a_pos, t_pos
+	z = re.compile('(?<=_z)(.*?)(?=_a)')
+	z_pos = z.findall(name)[0].replace('_','.')
+	z_pos = float(z_pos)
+
+	a = re.compile('(?<=_a)(.*?)(?=_t)')
+	a_pos = a.findall(name)[0].replace('_','.')
+	a_pos = float(a_pos)
+
+	t = re.compile('(?<=_t).*$')
+	t_pos = t.findall(name)[0].replace('_','.')
+	t_pos = float(t_pos)
+
+	return x_pos, y_pos, z_pos, a_pos, t_pos
 
 if __name__ == "__main__":
 	main(sys.argv[1:])
