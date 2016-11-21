@@ -29,6 +29,8 @@ def main(argv):
 	coord_img2[0,:] = [x_pos2, y_pos2, z_pos2]
 	coord_img2[1,:] = [a_pos2, t_pos2,0]
 
+	print coord_img1
+
 	save_to_file(name1, coord_img1)
 	save_to_file(name2, coord_img2)
 
@@ -83,13 +85,9 @@ def corresponding_twoD_points(rendered_image, real_image):
 
 	matcher = cv2.FlannBasedMatcher(flann_params, {})
 	matches = matcher.match(descriptor1[1], descriptor2[1])
-	for match in matches:
-		distance = match.distance
-		if distance < 0.2:
-			print distance
 
 	matches = sorted(matches, key=lambda val: val.distance)
-	out = drawMatches(img1, kp1, img2, kp2, matches[:20])
+	out = drawMatches(img1, kp1, img2, kp2, matches)
 	# convert the matches to coordinates in image
 	coord_img1, coord_img2 = get_coordinates(matches, kp1, kp2)
 	return coord_img1, coord_img2

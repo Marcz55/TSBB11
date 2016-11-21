@@ -23,19 +23,26 @@ def main(argv):
 	dist_Coeffs = np.zeros((5,1))
 
 	retval, rvecs, tvecs = cv2.solvePnP(threeD_corres, twoD_corres, camera_mtx, dist_Coeffs)
-
 	# project 3D points to image plane
 	imgpts, jac = cv2.projectPoints(threeD_corres, rvecs, tvecs, camera_mtx, dist_Coeffs)
 
 	# Obtains the camera position 
-	cam_pose, camera_pose = calc_camera_pose(rvecs, tvecs)
+	cam_pose, camera_pose,rotation_matrix = calc_camera_pose(rvecs, tvecs)
 	print "camerapose1:", camera_pose
 	print "camerapose2:", cam_pose
-	#print "Rotation matrix:", rmatrix
+	print "Rotation matrix:", rotation_matrix
 
+	tvec_tmp = tvecs
+	tvec_tmp[0] = 155
+	tvec_tmp[1] = 101
+	tvec_tmp[2] = 2
+
+	rvec_tmp = rvecs
+	rvec_tmp[0] = 78
+	rvec_tmp[1] = 4
+	rvec_tmp[2] = 2
 	#RANSAC
-	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvecs,tvecs,1,1500) 
-
+	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvec_tmp,tvec_tmp,1,3000,4,50) 
 	imgpts_ransac, jac_ransac = cv2.projectPoints(threeD_corres,rvec_ransac,tvec_ransac,camera_mtx,dist_Coeffs)
 
 	# Calculate the mean projection error
@@ -53,9 +60,10 @@ def main(argv):
 
 	#RANSAC
 	# Obtains the camera position 
-	cam_pose_ransac, camera_pose_ransac = calc_camera_pose(rvec_ransac, tvec_ransac)
+	cam_pose_ransac, camera_pose_ransac, rotation_matrix_ransac = calc_camera_pose(rvec_ransac, tvec_ransac)
 	print "cam_pose_ransac:", cam_pose_ransac
 	print "camera_pose_ransac:", camera_pose_ransac
+	print "Rotation matrix:", rotation_matrix_ransac
 
 
 # copy the loaded npy array to a new npy array
@@ -92,7 +100,7 @@ def calc_camera_pose(rvec, tvec):
 	rmatrix = cv2.Rodrigues(np_rodrigues)[0]
 	cam_pose = -np.matrix(rmatrix).T * np.matrix(tvec)
 	camera_pose = -rmatrix.dot(tvec)
-	return cam_pose, camera_pose
+	return cam_pose, camera_pose, rmatrix
 
 if __name__ == "__main__":
 	main(sys.argv[1:])
