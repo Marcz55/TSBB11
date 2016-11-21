@@ -4,8 +4,9 @@ import cv2, os, sys, re
 import numpy as np
 import pdb
 from tempfile import TemporaryFile
+from draw_matches import * 
 
-# User input it text file with narrative camera parameters, location to queryImage and trainImage, primary camera pos from NN:
+# location to queryImage and trainImage, primary camera pos from NN:
 def main(argv):
 	image1 = sys.argv[1]
 	image2 = sys.argv[2]
@@ -40,7 +41,7 @@ def corresponding_twoD_points(rendered_image, real_image):
 	#camera_pos2 = 
 	# Create ORB detector with 1000 keypoints with a scaling pyramid factor
 	# of 1.2
-	orb = cv2.ORB(1000, 2)
+	orb = cv2.ORB(2000, 2)
 	# Detect keypoints of original image
 	(kp1,des1) = orb.detectAndCompute(img1, None)
 	# Detect keypoints of rotated image
@@ -55,7 +56,7 @@ def corresponding_twoD_points(rendered_image, real_image):
 	# Sort the matches based on distance.  Least distance
 	# is better
 	matches = sorted(matches, key=lambda val: val.distance)
-
+	out = drawMatches(img1, kp1, img2, kp2, matches[:20])
 	# convert the matches to coordinates in image
 	coord_img1, coord_img2 = get_coordinates(matches, kp1, kp2)
 	return coord_img1, coord_img2

@@ -28,7 +28,7 @@ def main(argv):
 	# project 3D points to image plane
 	imgpts, jac = cv2.projectPoints(threeD_corres, rvecs, tvecs, camera_mtx, dist_Coeffs)
 
-	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvecs,tvecs,1,1500, 4) 
+	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvecs,tvecs,1,1500, 1) 
 
 	imgpts_ransac, jac_ransac = cv2.projectPoints(threeD_corres,rvec_ransac,tvec_ransac,camera_mtx,dist_Coeffs)
 
@@ -43,12 +43,11 @@ def main(argv):
 		mean_reprojection_inliers = mean_reprojection_error_inliers(imgpts_ransac,twoD_corres,threeD_corres,inliers)
 		print "Mean repoj error inliers:", mean_reprojection_inliers
 	else:
-		print "No inliers"
+		print "No inlier exist"
 	#print "Mean reprojection error:", mean_error
 	#print "Mean reprojection error RANSAC:", mean_error_ransac
 
 	# Obtains the camera position 
-	#rotvec = cv2.Rodrigues(rvecs)
 	np_rodrigues = np.asarray(rvecs[:,:],np.float64)
 	rmatrix = cv2.Rodrigues(np_rodrigues)[0]
 	cam_pos = -np.matrix(rmatrix).T * np.matrix(tvecs)
