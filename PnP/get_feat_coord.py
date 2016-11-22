@@ -29,7 +29,7 @@ def main(argv):
 	coord_img2[0,:] = [x_pos2, y_pos2, z_pos2]
 	coord_img2[1,:] = [a_pos2, t_pos2,0]
 
-	print coord_img1
+	print len(coord_img1)
 
 	save_to_file(name1, coord_img1)
 	save_to_file(name2, coord_img2)
@@ -39,7 +39,6 @@ def main(argv):
 # and the other one is the image taken with the camera, the two images has the same size
 # returns the 2D corresponding points in each picture as an array
 def corresponding_twoD_points(rendered_image, real_image):
-
 	img1 = rendered_image
 	img2 = real_image
 
@@ -52,7 +51,7 @@ def corresponding_twoD_points(rendered_image, real_image):
 	(kp2,des2) = orb.detectAndCompute(img2, None)
 	'''
 	surf = cv2.FeatureDetector_create('SURF')
-	surfdetector = cv2.GridAdaptedFeatureDetector(surf,50)
+	surfdetector = cv2.GridAdaptedFeatureDetector(surf,500)
 
 	# Detect features on input images
 	kp1 = surfdetector.detect(img1)
@@ -78,7 +77,6 @@ def corresponding_twoD_points(rendered_image, real_image):
 	out = drawMatches(img1, kp1, img2, kp2, matches[:20])
 	'''
 
-
 	# Match descriptor vectors using FLANN match
 	FLANN_INDEX_KDTREE = 1
 	flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
@@ -87,7 +85,7 @@ def corresponding_twoD_points(rendered_image, real_image):
 	matches = matcher.match(descriptor1[1], descriptor2[1])
 
 	matches = sorted(matches, key=lambda val: val.distance)
-	out = drawMatches(img1, kp1, img2, kp2, matches)
+	out = drawMatches(img1, kp1, img2, kp2, matches[:100])
 	# convert the matches to coordinates in image
 	coord_img1, coord_img2 = get_coordinates(matches, kp1, kp2)
 	return coord_img1, coord_img2

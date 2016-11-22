@@ -63,7 +63,7 @@ def main(argv):
 	cam_pose_ransac, camera_pose_ransac, rotation_matrix_ransac = calc_camera_pose(rvec_ransac, tvec_ransac)
 	print "cam_pose_ransac:", cam_pose_ransac
 	print "camera_pose_ransac:", camera_pose_ransac
-	print "Rotation matrix:", rotation_matrix_ransac
+	print ""
 
 
 # copy the loaded npy array to a new npy array
