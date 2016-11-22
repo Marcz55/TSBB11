@@ -31,18 +31,19 @@ def main(argv):
 	print "camerapose1:", camera_pose
 	print "camerapose2:", cam_pose
 	print "Rotation matrix:", rotation_matrix
-
+	'''
 	tvec_tmp = tvecs
-	tvec_tmp[0] = 155
-	tvec_tmp[1] = 101
-	tvec_tmp[2] = 2
+	tvec_tmp[0] = 153.5752
+	tvec_tmp[1] = 98.25534
+	tvec_tmp[2] = 1.45364
 
 	rvec_tmp = rvecs
-	rvec_tmp[0] = 78
-	rvec_tmp[1] = 4
-	rvec_tmp[2] = 2
+	rvec_tmp[0] = 78.203
+	rvec_tmp[1] = 0.548
+	rvec_tmp[2] = 1
+	'''
 	#RANSAC
-	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvec_tmp,tvec_tmp,1,3000,4,50) 
+	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvecs, tvecs,1, 10000,4)#,rvec_tmp,tvec_tmp,1,3000,4,50) 
 	imgpts_ransac, jac_ransac = cv2.projectPoints(threeD_corres,rvec_ransac,tvec_ransac,camera_mtx,dist_Coeffs)
 
 	# Calculate the mean projection error
