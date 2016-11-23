@@ -1,49 +1,38 @@
 # This script is going to refine the camera poses from the neural network with the help of Perspektive-n-point algorithm (PnP)
-# It takes three inarguments, the file with the camera matrix of the rendered image, path to two images, one rendered from the 3D image and one query image taken with the camera and finds the correpsonding 2D and 3D points in the images and performs PnP.
+# It takes three inarguments, the file with the camera matrix of the rendered image, 3D - 2D corresponding points
+#The 2D points are honogenous and the two first elements are the camera pose used to render the image, which will be removed later
 import numpy as np
-import cv2,sys,math
+import cv2,sys,math, time
 
 def main(argv):
 	camera_mtx = np.loadtxt(sys.argv[1], delimiter = " ")
-	threeD_tmp = np.load(sys.argv[2]) # Nonhomogenous
+	threeD_tmp = np.load(sys.argv[2]) #Homogenous
 	twoD_tmp = np.load(sys.argv[3])
 
-	distCoeffs = np.zeros((5,1))
+	distCoeffs = np.zeros((5,1)) # Blenders default camera shouln't have any distortion
 	twoD_tmp = twoD_tmp[2:,:]
 	len_twoD = len(twoD_tmp)
 	len_threeD = len(threeD_tmp)
-	#print "3D points:", threeD_tmp
+
 	if len_threeD != len_twoD:
 		print "lenght of 3D corresp:" + str(len_threeD)
 		print "lenght of 2D corresp:" + str(len_twoD)
 		sys.exit("The lenght of the correspoing arrays do not match, program will exit")
 
+	#Copys the two arrays to a new numpy array to be sure that the format is correct
 	twoD_corres = copy_array(twoD_tmp,len_twoD,2)
 	threeD_corres = copy_array(threeD_tmp,len_threeD,3)
 	dist_Coeffs = np.zeros((5,1))
 
+	# Initital solution from SolvePnP
 	retval, rvecs, tvecs = cv2.solvePnP(threeD_corres, twoD_corres, camera_mtx, dist_Coeffs)
 	# project 3D points to image plane
 	imgpts, jac = cv2.projectPoints(threeD_corres, rvecs, tvecs, camera_mtx, dist_Coeffs)
 
-	# Obtains the camera position 
-	cam_pose, camera_pose,rotation_matrix = calc_camera_pose(rvecs, tvecs)
-	print "camerapose1:", camera_pose
-	print "camerapose2:", cam_pose
-	print "Rotation matrix:", rotation_matrix
-	'''
-	tvec_tmp = tvecs
-	tvec_tmp[0] = 153.5752
-	tvec_tmp[1] = 98.25534
-	tvec_tmp[2] = 1.45364
-
-	rvec_tmp = rvecs
-	rvec_tmp[0] = 78.203
-	rvec_tmp[1] = 0.548
-	rvec_tmp[2] = 1
-	'''
-	#RANSAC
-	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvecs, tvecs,1, 10000,4)#,rvec_tmp,tvec_tmp,1,3000,4,50) 
+	#Refined solution from ransac
+	start = time.clock()
+	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvecs, tvecs,1, 10000,4)
+	end = time.clock()
 	imgpts_ransac, jac_ransac = cv2.projectPoints(threeD_corres,rvec_ransac,tvec_ransac,camera_mtx,dist_Coeffs)
 
 	# Calculate the mean projection error
@@ -57,15 +46,13 @@ def main(argv):
 	else:
 		print "No inlier exist"
 	#print "Mean reprojection error:", mean_error
-	#print "Mean reprojection error RANSAC w outliers:", mean_error_ransac
 
-	#RANSAC
-	# Obtains the camera position 
+	#RANSAC Obtains the camera position 
 	cam_pose_ransac, camera_pose_ransac, rotation_matrix_ransac = calc_camera_pose(rvec_ransac, tvec_ransac)
+
 	print "cam_pose_ransac:", cam_pose_ransac
 	print "camera_pose_ransac:", camera_pose_ransac
-	print ""
-
+	print "time to do ransac:", end-start
 
 # copy the loaded npy array to a new npy array
 def copy_array(array, len_of_array, dim):

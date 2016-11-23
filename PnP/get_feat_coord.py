@@ -85,7 +85,7 @@ def corresponding_twoD_points(rendered_image, real_image):
 	matches = matcher.match(descriptor1[1], descriptor2[1])
 
 	matches = sorted(matches, key=lambda val: val.distance)
-	out = drawMatches(img1, kp1, img2, kp2, matches[:100])
+	out = drawMatches(img1, kp1, img2, kp2, matches[:20])
 	# convert the matches to coordinates in image
 	coord_img1, coord_img2 = get_coordinates(matches, kp1, kp2)
 	return coord_img1, coord_img2
