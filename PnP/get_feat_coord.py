@@ -9,8 +9,6 @@ from draw_matches import *
 def main(argv):
 	image1 = sys.argv[1] # real
 	image2 = sys.argv[2] # rendered
-
-
 	#image1 = '/Users/samanthavi/Documents/TSBB11/TSBB11---Camera-poses/PnP/testbilder/Maggiebild_x155_y101_z2_a78_t4.png'
 	#image2 = '/Users/samanthavi/Documents/TSBB11/TSBB11---Camera-poses/PnP/testbilder/Maggiebild_x153_5752_y98_25534_z1_45346_a78_203_t0_548.png'
 
@@ -22,19 +20,19 @@ def main(argv):
 	kernel = np.ones((5,5),np.float32)/25
 	img1_filtered = cv2.filter2D(img1,-1,kernel)
 
-	#x_pos1, y_pos1, z_pos1, a_pos1, t_pos1 = get_render_camerapose(name1)
+	x_pos1, y_pos1, z_pos1, a_pos1, t_pos1 = get_render_camerapose(name1)
 	x_pos2, y_pos2, z_pos2, a_pos2, t_pos2 = get_render_camerapose(name2)
 
-	coord_img1, coord_img2 = corresponding_twoD_points(img1, img2)
-	#coord_img1[0,:] = [x_pos1, y_pos1, z_pos1]
-	#coord_img1[1,:] = [a_pos1, t_pos1,0]
+	coord_img1, coord_img2 = corresponding_twoD_points(img1_filtered, img2)
+	coord_img1[0,:] = [x_pos1, y_pos1, z_pos1]
+	coord_img1[1,:] = [a_pos1, t_pos1,0]
 
 	coord_img2[0,:] = [x_pos2, y_pos2, z_pos2]
 	coord_img2[1,:] = [a_pos2, t_pos2,0]
 
 	print len(coord_img1)
 
-	#save_to_file(name1, coord_img1)
+	save_to_file(name1, coord_img1)
 	save_to_file(name2, coord_img2)
 
 
