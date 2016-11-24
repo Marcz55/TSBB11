@@ -7,31 +7,34 @@ from draw_matches import *
 
 # location to queryImage and trainImage, primary camera pos from NN:
 def main(argv):
-	#image1 = sys.argv[1]
-	#image2 = sys.argv[2]
+	image1 = sys.argv[1] # real
+	image2 = sys.argv[2] # rendered
 
 
-	image1 = '/Users/samanthavi/Documents/TSBB11/TSBB11---Camera-poses/PnP/testbilder/Maggiebild_x155_y101_z2_a78_t4.png'
-	image2 = '/Users/samanthavi/Documents/TSBB11/TSBB11---Camera-poses/PnP/testbilder/Maggiebild_x153_5752_y98_25534_z1_45346_a78_203_t0_548.png'
+	#image1 = '/Users/samanthavi/Documents/TSBB11/TSBB11---Camera-poses/PnP/testbilder/Maggiebild_x155_y101_z2_a78_t4.png'
+	#image2 = '/Users/samanthavi/Documents/TSBB11/TSBB11---Camera-poses/PnP/testbilder/Maggiebild_x153_5752_y98_25534_z1_45346_a78_203_t0_548.png'
 
 	img1 = cv2.imread(image1,0)
 	img2 = cv2.imread(image2,0)
 	name1 = get_file_name(image1)
 	name2 = get_file_name(image2)
 
-	x_pos1, y_pos1, z_pos1, a_pos1, t_pos1 = get_render_camerapose(name1)
+	kernel = np.ones((5,5),np.float32)/25
+	img1_filtered = cv2.filter2D(img1,-1,kernel)
+
+	#x_pos1, y_pos1, z_pos1, a_pos1, t_pos1 = get_render_camerapose(name1)
 	x_pos2, y_pos2, z_pos2, a_pos2, t_pos2 = get_render_camerapose(name2)
 
 	coord_img1, coord_img2 = corresponding_twoD_points(img1, img2)
-	coord_img1[0,:] = [x_pos1, y_pos1, z_pos1]
-	coord_img1[1,:] = [a_pos1, t_pos1,0]
+	#coord_img1[0,:] = [x_pos1, y_pos1, z_pos1]
+	#coord_img1[1,:] = [a_pos1, t_pos1,0]
 
 	coord_img2[0,:] = [x_pos2, y_pos2, z_pos2]
 	coord_img2[1,:] = [a_pos2, t_pos2,0]
 
 	print len(coord_img1)
 
-	save_to_file(name1, coord_img1)
+	#save_to_file(name1, coord_img1)
 	save_to_file(name2, coord_img2)
 
 
@@ -42,29 +45,14 @@ def corresponding_twoD_points(rendered_image, real_image):
 	img1 = rendered_image
 	img2 = real_image
 
-	'''
+	
 	# Create ORB detector
 	orb = cv2.ORB(2000, 2)
 	# Detect keypoints of original image
 	(kp1,des1) = orb.detectAndCompute(img1, None)
 	# Detect keypoints of rendered image
 	(kp2,des2) = orb.detectAndCompute(img2, None)
-	'''
-	surf = cv2.FeatureDetector_create('SURF')
-	surfdetector = cv2.GridAdaptedFeatureDetector(surf,500)
 
-	# Detect features on input images
-	kp1 = surfdetector.detect(img1)
-	kp2 = surfdetector.detect(img2)
-
-	# Create a descriptor extractor
-	extractor = cv2.DescriptorExtractor_create('SURF')
-
-	# Calculate descriptors
-	descriptor1 = extractor.compute(img1, kp1)
-	descriptor2 = extractor.compute(img2, kp2)
-
-	'''
 	# Create matcher
 	bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
@@ -75,7 +63,27 @@ def corresponding_twoD_points(rendered_image, real_image):
 	# is better
 	matches = sorted(matches, key=lambda val: val.distance)
 	out = drawMatches(img1, kp1, img2, kp2, matches[:20])
+	
 	'''
+	surf = cv2.FeatureDetector_create('SURF')
+	surfdetector = cv2.GridAdaptedFeatureDetector(surf,7000)
+
+	# Detect features on input images
+	kp1 = surfdetector.detect(img1)
+	kp2 = surfdetector.detect(img2)
+	#tmp = cv2.drawKeypoints(img1,kp1)
+
+	#cv2.imshow('fj',tmp)
+	#tmp2 = cv2.drawKeypoints(img2,kp2)
+
+	#cv2.imshow('fj2',tmp2)
+	#cv2.waitKey(0)
+	# Create a descriptor extractor
+	extractor = cv2.DescriptorExtractor_create('SURF')
+
+	# Calculate descriptors
+	descriptor1 = extractor.compute(img1, kp1)
+	descriptor2 = extractor.compute(img2, kp2)
 
 	# Match descriptor vectors using FLANN match
 	FLANN_INDEX_KDTREE = 1
@@ -83,9 +91,10 @@ def corresponding_twoD_points(rendered_image, real_image):
 
 	matcher = cv2.FlannBasedMatcher(flann_params, {})
 	matches = matcher.match(descriptor1[1], descriptor2[1])
-
 	matches = sorted(matches, key=lambda val: val.distance)
 	out = drawMatches(img1, kp1, img2, kp2, matches[:20])
+	'''
+
 	# convert the matches to coordinates in image
 	coord_img1, coord_img2 = get_coordinates(matches, kp1, kp2)
 	return coord_img1, coord_img2
