@@ -24,19 +24,20 @@ def main(argv):
 	threeD_corres = copy_array(threeD_tmp,len_threeD,3)
 	dist_Coeffs = np.zeros((5,1))
 
+	
 	# Initital solution from SolvePnP
 	retval, rvecs, tvecs = cv2.solvePnP(threeD_corres, twoD_corres, camera_mtx, dist_Coeffs)
 	# project 3D points to image plane
 	imgpts, jac = cv2.projectPoints(threeD_corres, rvecs, tvecs, camera_mtx, dist_Coeffs)
-
+	
 	#Refined solution from ransac
 	start = time.clock()
-	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs,rvecs, tvecs,1, 10000,4)
+	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs, rvecs, tvecs, iterationsCount = 1000000, reprojectionError= 1)
 	end = time.clock()
 	imgpts_ransac, jac_ransac = cv2.projectPoints(threeD_corres,rvec_ransac,tvec_ransac,camera_mtx,dist_Coeffs)
 
 	# Calculate the mean projection error
-	mean_error = mean_reprojection_error_all(imgpts,twoD_corres,threeD_corres)
+	#mean_error = mean_reprojection_error_all(imgpts,twoD_corres,threeD_corres)
 	mean_error_ransac = mean_reprojection_error_all(imgpts_ransac,twoD_corres,threeD_corres)
 
 	if inliers is not None:
