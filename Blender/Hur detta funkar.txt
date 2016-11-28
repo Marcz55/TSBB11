@@ -1,0 +1,13 @@
+Generate_traindata: 	Rendera träningsdata från modellen.
+
+Render_candidate: 	Rendera kandidatlösningen given från neuronnätet.
+
+Pose_enhance: 		Givet 2D-korrespondenser, ta fram motsvarande 3D-punkter.
+
+Check_point: 		Kolla om en viss 3D-punkt är synlig i en kamerapos.
+
+Check_view: 		Kolla hur mycket av det som syns i en pos också syns i en annan.
+
+Visualize:		Rita ut en pos i modellen.
+
+Render_raycast_rensad:	Gammal kod som inte används.
