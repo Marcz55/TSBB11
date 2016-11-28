@@ -3,38 +3,54 @@
 """
 Name: 'Pose enhancement'
 Blender: 277
+
+This script takes a list containing 2D-points and saves a list of their corresponding 3D-coordinates.  The first two elements in this list are assumed to contain the desired location and rotation of the camera.
+
+Input:  Target model in 3D-space
+        Filepath to input 2D-corresponding points
+        Filepath to output for resulting 3D-points
+        Camera height over the ground
+        Intrinsic parameters for the used camera matrix (position (0,0),(1,1) with negative sign)
+        Resolution of used camera
+
+Output: List of 3D-coordinates for the provided 2D-points
 """
 import bpy, mathutils, math, numpy
 from mathutils import Vector
 from mathutils import Matrix
 from math import tan
+from math import atan
 from math import cos
 from math import sin
 from math import pi
 
+#Start of setup--------------------------------------------------------------------------------
+
 targetModelName = "teknikringen8"			#Name of model in Blender workspace
-dataFilepath = "C:\\CDIO\\Skript\\Maggiebild_even.npy"	#The filepath to which the rendered images will be saved
-outputFilepath = "C:\\CDIO\\Skript\\3Dpunkter_even" #The filepath to where the output points will be saved
-cameraHeight = 1.64;
+dataFilepath = "C:\\CDIO\\Skript\\Realtest_kandidatbild_ny.npy"	#The filepath to which the rendered images will be saved
+outputFilepath = "C:\\CDIO\\Skript\\3Dpunkter_kandidatbild_ny" #The filepath to where the output points will be saved
+cameraHeight = 1.64; The height of the camera above the ground
 
 #Define the parameters for the camera used
 cameraIntrinsicNarrative = Matrix().to_3x3()
-cameraIntrinsicNarrative[0][0] = 2174.281487700746
-cameraIntrinsicNarrative[1][1] = 2181.875457866787
+cameraIntrinsicNarrative[0][0] = -2174.281487700746
+cameraIntrinsicNarrative[1][1] = -2181.875457866787
 cameraIntrinsicNarrative[0][2] = 1646.480455781699
 cameraIntrinsicNarrative[1][2] = 1239.824368870457
 cameraResX = 3264
 cameraResY = 2448
+#FOV 58.75420128917878
+
+#End of setup----------------------------------------------------------------------
 
 #Assign objects
-
 targetModel = bpy.data.objects[targetModelName]
 Scene = bpy.data.scenes["Scene"]
 Camera = bpy.data.objects["Camera"]
-Plane = bpy.data.objects["Plane"]
-#Query = numpy.load(dataFilepath + "query.npy") #En testbild
-#Train = numpy.load(dataFilepath + "train.npy") #En till testbild
+
 pointList = numpy.load(dataFilepath)
+#hej = numpy.array([[104,24,0],[0,-3,0]])
+#pointList = numpy.append(hej,pointList,0)
 
 cameraTilt = pointList[1][1]
 cameraAngle = pointList[1][0]
@@ -71,12 +87,12 @@ def convertCameraIntrinsic(intrinsic,cameraResX,cameraResY):
     output[1][2] = ycenter
     return output
 
-def setCameraIntrinsic(intrinsic):
+def setCameraFOV(intrinsic):
     Scene = bpy.data.scenes["Scene"]
-    Camera = bpy.data.objects["Camera"]
-    ratio = intrinsic[0][0]/intrinsic[1][1]
-    viewAngle = 2*atan(-Scene.render.resolution_x/(2*intrinsic[0][0]))
-    return viewAngle
+    CameraData = bpy.data.cameras[0]
+    #ratio = intrinsic[0][0]/intrinsic[1][1]
+    CameraData.angle = 2*atan(-Scene.render.resolution_x/(2*intrinsic[0][0]))
+    return 1
 
 def getCameraIntrinsic(write):
     #If the variable actual is true, blender's actual camera matrix is used. Otherwise, the camera matrix given as input to this file, scaled to fit the render resolution will be returned.
@@ -166,16 +182,28 @@ def get3D(imageCoord,object):
         rayLocation = object.matrix_world*rayResult[1]
     return rayLocation
 
+#Since the input file defines the origin in the top left corner of the image, the y-axis must be flipped
 def run(pointList,targetModel):
+    Scene = bpy.data.scenes["Scene"]
     output = numpy.zeros((pointList.shape[0]-2,pointList.shape[1]))
     for row in range (0,pointList.shape[0]-2):
-        currentPoint = Vector((pointList[row+2][0],pointList[row+2][1],pointList[row+2][2]))
+        currentPoint = Vector((pointList[row+2][0],Scene.render.resolution_y-pointList[row+2][1],pointList[row+2][2]))
         output[row] = get3D(currentPoint,targetModel)    
     return output        
 
+#MAIN----------------------------------------------------------------
+
+convertedIntrinsic = convertCameraIntrinsic(cameraIntrinsicNarrative,cameraResX,cameraResY)
+setCameraFOV(convertedIntrinsic)
 outputPoints = run(pointList,targetModel)
-
-#for row in range(0,pointList.shape[0]):
-#    bpy.ops.mesh.primitive_cube_add(location=(get3D(Vector((pointList[row][0],pointList[row][1],pointList[row][2])),targetModel)))
-
 numpy.save(outputFilepath,outputPoints)
+
+
+#hej = numpy.zeros((outputPoints.shape[0],outputPoints.shape[1]))
+#hejklar = numpy.zeros((outputPoints.shape[0],outputPoints.shape[1]))
+#for row in range(0,outputPoints.shape[0]):
+#    hej[row] = worldToImage(Vector((outputPoints[row][0],outputPoints[row][1],outputPoints[row][2],1)))
+#    hejklar[row] = hej[row] - Vector((pointList[row+2][0],Scene.render.resolution_y-pointList[row+2][1],pointList[row+2][2]))
+    
+#for row in range(0,pointList.shape[0]):
+#    bpy.ops.mesh.primitive_cube_add(location=(get3D(Vector((pointList[row][0],512-pointList[row][1],pointList[row][2])),targetModel)))
