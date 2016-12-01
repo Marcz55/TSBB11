@@ -163,7 +163,7 @@ def main(inquiryPoint,Scene,targetModel,Camera):
     if(inquiryCameraPoint[0] > 0 and inquiryCameraPoint[0] < Scene.render.resolution_x and inquiryCameraPoint[1] > 0 and inquiryCameraPoint[1] < Scene.render.resolution_y):
         camToModel = get3D(inquiryCameraPoint,targetModel) - Camera.location
         camToPoint =  inquiryPoint - Camera.location
-        if((camToModel-camToPoint)*getCameraDirection() > 0):
+        if((camToModel-camToPoint)*getCameraDirection() > -0.01):
             result = True
         return result
 
