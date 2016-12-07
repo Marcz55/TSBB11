@@ -1,3 +1,4 @@
 # ignores all .pyc files in the repo
 **.pyc
 **.png
+**.jpg
