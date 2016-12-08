@@ -55,7 +55,7 @@ def corresponding_twoD_points(rendered_image, real_image):
 
 	flann = cv2.FlannBasedMatcher(index_params,search_params)
 
-	matches = flann.knnMatch(des1,des2,k = 4)
+	matches = flann.knnMatch(des1,des2,k = 2)
 	# convert the matches to coordinates in image
 	query_Idx, train_Idx = get_matching_index(matches)
 	coord_img1, coord_img2 = get_coordinates(kp1,kp2,query_Idx,train_Idx)

@@ -5,9 +5,10 @@ import numpy as np
 import cv2,sys,math, time
 
 def main(argv):
+	print "start"
 	camera_mtx = np.loadtxt(sys.argv[1], delimiter = " ")
-	threeD_tmp = np.load(sys.argv[2]) #Homogenous
-	twoD_tmp = np.load(sys.argv[3])
+	threeD_tmp = np.load(sys.argv[2]) 
+	twoD_tmp = np.load(sys.argv[3]) #Homogenous
 
 	distCoeffs = np.zeros((5,1)) # Blenders default camera shouln't have any distortion
 	twoD_tmp = twoD_tmp[2:,:]
@@ -24,15 +25,14 @@ def main(argv):
 	threeD_corres = copy_array(threeD_tmp,len_threeD,3)
 	dist_Coeffs = np.zeros((5,1))
 
-	
 	# Initital solution from SolvePnP
 	retval, rvecs, tvecs = cv2.solvePnP(threeD_corres, twoD_corres, camera_mtx, dist_Coeffs)
 	# project 3D points to image plane
 	imgpts, jac = cv2.projectPoints(threeD_corres, rvecs, tvecs, camera_mtx, dist_Coeffs)
-	
-	#Refined solution from ransac
+
+	#PnP Ransac
 	start = time.clock()
-	rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs, rvecs, tvecs, iterationsCount = 1000000, reprojectionError= 1)
+	retval_ransac, rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs, iterationsCount = 100000, reprojectionError = 1)
 	end = time.clock()
 	imgpts_ransac, jac_ransac = cv2.projectPoints(threeD_corres,rvec_ransac,tvec_ransac,camera_mtx,dist_Coeffs)
 
@@ -51,10 +51,13 @@ def main(argv):
 	#RANSAC Obtains the camera position 
 	cam_pose_ransac, camera_pose_ransac, rotation_matrix_ransac = calc_camera_pose(rvec_ransac, tvec_ransac)
 
+	euler_rotation = rotationMatrixToEulerAngles(rotation_matrix_ransac)
+
 	print "cam_pose_ransac:", cam_pose_ransac
 	print "camera_pose_ransac:", camera_pose_ransac
+	print "rotation matrix:", rotation_matrix_ransac
 	print "time to do ransac:", end-start
-
+	print "euler angles:", euler_rotation
 # copy the loaded npy array to a new npy array
 def copy_array(array, len_of_array, dim):
 	tmp_array = np.zeros((len_of_array,dim))
@@ -90,6 +93,34 @@ def calc_camera_pose(rvec, tvec):
 	cam_pose = -np.matrix(rmatrix).T * np.matrix(tvec)
 	camera_pose = -rmatrix.dot(tvec)
 	return cam_pose, camera_pose, rmatrix
+
+# Checks if a matrix is a valid rotation matrix.
+def isRotationMatrix(rotation) :
+    Rt = np.transpose(R)
+    shouldBeIdentity = np.dot(Rt, R)
+    I = np.identity(3, dtype = R.dtype)
+    n = np.linalg.norm(I - shouldBeIdentity)
+    return n < 1e-6
+ 
+# Calculates rotation matrix to euler angles The result is the same as MATLAB except the order of the euler angles ( x and z are swapped ).
+def rotationMatrixToEulerAngles(rotation) :
+ 
+    #assert(isRotationMatrix(R))
+    sy = math.sqrt(rotation[0,0] * rotation[0,0] + rotation[1,0] * rotation[1,0])
+     
+    singular = sy < 1e-6
+ 
+    if  not singular :
+        x = math.atan2(rotation[2,1] , rotation[2,2])
+        y = math.atan2(-rotation[2,0], sy)
+        z = math.atan2(rotation[1,0], rotation[0,0])
+    else :
+        x = math.atan2(-rotation[1,2], rotation[1,1])
+        y = math.atan2(-rotation[2,0], sy)
+        z = 0
+ 
+    return np.array([x, y, z])*180/math.pi
+
 
 if __name__ == "__main__":
 	main(sys.argv[1:])
