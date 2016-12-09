@@ -1,6 +1,6 @@
 
-# This script takes images in a directory and resize them to 512x512 to a folder that the user chooses
-# It takes two inarguments: path to the images taken with the camera, save path to were the downsampled images should be saved
+# This script takes images in a directory and resize them to wanted size to a folder that the user chooses
+# It takes three inarguments: path to the images taken with the camera, save path to were the downsampled images should be saved, and the resolution of the image, the image will be quadratic
 
 import os, math, sys
 from PIL import Image
@@ -11,7 +11,7 @@ def main(argv):
 
 	path_to_camera_images = sys.argv[1]
 	save_path = sys.argv[2]
-	outputsize = sys.argv[3]
+	outputsize = int(sys.argv[3])
 	# check that the directory exists
 	os.path.exists(path_to_camera_images)
 	os.path.exists(save_path)

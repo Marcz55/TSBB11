@@ -9,23 +9,18 @@ from matplotlib import pyplot as plt
 
 # location to queryImage and trainImage, primary camera pos from NN:
 def main(argv):
-	#image1 = sys.argv[1] # real
-	#image2 = sys.argv[2] # rendered
-	image1 = '/Users/samanthavi/Documents/TSBB11/TSBB11---Camera-poses/PnP/20161003_111538_00009.31.18_small.jpg'
-	image2 = '/Users/samanthavi/Documents/TSBB11/TSBB11---Camera-poses/PnP/Test_x220_y66_z3_a5_t3.png'
-
+	image1 = sys.argv[1] # real
+	image2 = sys.argv[2] # rendered
+	#image1 = '/Users/samanthavi/Documents/TSBB11/TSBB11---Camera-poses/PnP/20161003_111538_00009.31.18_small.jpg'
+	#image2 = '/Users/samanthavi/Documents/TSBB11/TSBB11---Camera-poses/PnP/Test_x220_y66_z3_a5_t3.png'
 	img1 = cv2.imread(image1,0)
 	img2 = cv2.imread(image2,0)
 	name1 = get_file_name(image1)
 	name2 = get_file_name(image2)
 
-	#x_pos1, y_pos1, z_pos1, a_pos1, t_pos1 = get_render_camerapose(name1)
 	x_pos2, y_pos2, z_pos2, a_pos2, t_pos2 = get_render_camerapose(name2)
 
 	coord_img1, coord_img2 = corresponding_twoD_points(img1, img2)
-
-	#coord_img1[0,:] = [x_pos1, y_pos1, z_pos1]
-	#coord_img1[1,:] = [a_pos1, t_pos1,0]
 
 	coord_img2[0,:] = [x_pos2, y_pos2, z_pos2]
 	coord_img2[1,:] = [a_pos2, t_pos2,0]
@@ -55,7 +50,7 @@ def corresponding_twoD_points(rendered_image, real_image):
 
 	flann = cv2.FlannBasedMatcher(index_params,search_params)
 
-	matches = flann.knnMatch(des1,des2,k = 2)
+	matches = flann.knnMatch(des1,des2,k = 5)
 	# convert the matches to coordinates in image
 	query_Idx, train_Idx = get_matching_index(matches)
 	coord_img1, coord_img2 = get_coordinates(kp1,kp2,query_Idx,train_Idx)
@@ -97,6 +92,7 @@ def get_coordinates(kp1, kp2, img1_idx, img2_idx):
 def save_to_file(file_name, coordinates):
 	np.save(file_name, coordinates)
 
+# Finds the name of the image
 def get_file_name(image):
 	whole_name = os.path.basename(image)
 	name, ext = os.path.splitext(whole_name)
