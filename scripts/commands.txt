@@ -1,0 +1,1 @@
+python scripts/test_posenet.py --model `pwd`/scripts/models/train_posenet.prototxt  --weights `pwd`/snapshots_iter_589.caffemodel --iter 100
