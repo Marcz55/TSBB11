@@ -28,7 +28,6 @@ def main(argv):
 	save_to_file(name1, coord_img1)
 	save_to_file(name2, coord_img2)
 
-
 # Takes two images, one rendered from the camera pose in the 3D model
 # and the other one is the image taken with the camera, the two images has the same size
 # returns the 2D corresponding points in each picture as an array
@@ -44,13 +43,13 @@ def corresponding_twoD_points(rendered_image, real_image):
 	kp2, des2 = sift.detectAndCompute(img2,None)
 
 	# FLANN parameters
-	FLANN_INDEX_KDTREE = 0
+	FLANN_INDEX_KDTREE = 1i
 	index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
 	search_params = dict(checks=100)   # or pass empty dictionary
 
 	flann = cv2.FlannBasedMatcher(index_params,search_params)
 
-	matches = flann.knnMatch(des1,des2,k = 5)
+	matches = flann.knnMatch(des1,des2,k = 3)
 	# convert the matches to coordinates in image
 	query_Idx, train_Idx = get_matching_index(matches)
 	coord_img1, coord_img2 = get_coordinates(kp1,kp2,query_Idx,train_Idx)

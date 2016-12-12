@@ -10,7 +10,7 @@ def main(argv):
 	threeD_tmp = np.load(sys.argv[2]) 
 	twoD_tmp = np.load(sys.argv[3]) #Homogenous
 
-	distCoeffs = np.zeros((5,1)) # Blenders default camera shouln't have any distortion
+	distCoeffs = np.zeros((5,1)) #camera shouln't have any distortion
 	twoD_tmp = twoD_tmp[2:,:]
 	len_twoD = len(twoD_tmp)
 	len_threeD = len(threeD_tmp)
@@ -30,38 +30,45 @@ def main(argv):
 	# project 3D points to image plane
 	imgpts, jac = cv2.projectPoints(threeD_corres, rvecs, tvecs, camera_mtx, dist_Coeffs)
 	n = 5
-	w = 0.45
-	p = 0.999
-	k, sd = ransac_iterations(w,p,n)
-	iteration = k + sd
-	#PnP Ransac
-	start = time.clock()
-	retval_ransac, rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs, iterationsCount = iteration, reprojectionError = 1)
-	end = time.clock()
-	imgpts_ransac, jac_ransac = cv2.projectPoints(threeD_corres,rvec_ransac,tvec_ransac,camera_mtx,dist_Coeffs)
+	#w = 0.5
+	w_list = np.linspace(0.1,0.9,17)
+	p = 0.8
+	for w in w_list:
+		print "now w is:", w
+		k, sd = ransac_iterations(w,p,n)
+		iteration = k + sd
+		#print "w:",w
+		#print "p:", p
+		print "Iterations:", iteration
+		#PnP Ransac
+		start = time.clock()
+		retval_ransac, rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs, iterationsCount = iteration, reprojectionError = 3)
+		end = time.clock()
+		imgpts_ransac, jac_ransac = cv2.projectPoints(threeD_corres,rvec_ransac,tvec_ransac,camera_mtx,dist_Coeffs)
 
-	# Calculate the mean projection error
-	#mean_error = mean_reprojection_error_all(imgpts,twoD_corres,threeD_corres)
-	mean_error_ransac = mean_reprojection_error_all(imgpts_ransac,twoD_corres,threeD_corres)
+		# Calculate the mean projection error
+		mean_error_ransac = mean_reprojection_error_all(imgpts_ransac,twoD_corres,threeD_corres)
 
-	if inliers is not None:
-		mean_reprojection_inliers = mean_reprojection_error_inliers(imgpts_ransac,twoD_corres,threeD_corres,inliers)
-		print "Mean repoj error inliers:", mean_reprojection_inliers
-		print "Numbers of inliners", len(inliers)
-	else:
-		print "No inlier exist"
-	#print "Mean reprojection error:", mean_error
+		if inliers is not None:
+			mean_reprojection_inliers = mean_reprojection_error_inliers(imgpts_ransac,twoD_corres,threeD_corres,inliers)
+			print "Mean repoj error inliers:", mean_reprojection_inliers
+			print "Numbers of inliners", len(inliers)
+			percent_inliers = float(len(inliers))/len(twoD_corres)
+			print "percent inliers:", percent_inliers
+		else:
+			print "No inlier exist"
+		#print "Mean reprojection error:", mean_error
 
-	#RANSAC Obtains the camera position 
-	cam_pose_ransac, camera_pose_ransac, rotation_matrix_ransac = calc_camera_pose(rvec_ransac, tvec_ransac)
+		#RANSAC Obtains the camera position 
+		cam_pose_ransac, camera_pose_ransac, rotation_matrix_ransac = calc_camera_pose(rvec_ransac, tvec_ransac)
 
-	euler_rotation = rotationMatrixToEulerAngles(rotation_matrix_ransac)
+		euler_rotation = rotationMatrixToEulerAngles(rotation_matrix_ransac)
 
-	print "cam_pose_ransac:", cam_pose_ransac
-	print "camera_pose_ransac:", camera_pose_ransac
-	print "rotation matrix:", rotation_matrix_ransac
-	print "time to do ransac:", end-start
-	print "euler angles:", euler_rotation
+		print "cam_pose_ransac:"
+		print cam_pose_ransac
+		print "time to do ransac:", end-start
+		print "euler angles:", euler_rotation
+
 # copy the loaded npy array to a new npy array
 def copy_array(array, len_of_array, dim):
 	tmp_array = np.zeros((len_of_array,dim))
@@ -98,32 +105,20 @@ def calc_camera_pose(rvec, tvec):
 	camera_pose = -rmatrix.dot(tvec)
 	return cam_pose, camera_pose, rmatrix
 
-# Checks if a matrix is a valid rotation matrix.
-def isRotationMatrix(rotation) :
-    Rt = np.transpose(R)
-    shouldBeIdentity = np.dot(Rt, R)
-    I = np.identity(3, dtype = R.dtype)
-    n = np.linalg.norm(I - shouldBeIdentity)
-    return n < 1e-6
- 
 # Calculates rotation matrix to euler angles The result is the same as MATLAB except the order of the euler angles ( x and z are swapped ).
-def rotationMatrixToEulerAngles(rotation) :
- 
-    #assert(isRotationMatrix(R))
-    sy = math.sqrt(rotation[0,0] * rotation[0,0] + rotation[1,0] * rotation[1,0])
-     
-    singular = sy < 1e-6
- 
-    if  not singular :
-        x = math.atan2(rotation[2,1] , rotation[2,2])
-        y = math.atan2(-rotation[2,0], sy)
-        z = math.atan2(rotation[1,0], rotation[0,0])
-    else :
-        x = math.atan2(-rotation[1,2], rotation[1,1])
-        y = math.atan2(-rotation[2,0], sy)
-        z = 0
- 
-    return np.array([x, y, z])*180/math.pi
+def rotationMatrixToEulerAngles(rotation):
+	sy = math.sqrt(rotation[0,0] * rotation[0,0] + rotation[1,0] * rotation[1,0])
+	singular = sy < 1e-6
+
+	if  not singular :
+		x = math.atan2(rotation[2,1] , rotation[2,2])
+		y = math.atan2(-rotation[2,0], sy)
+		z = math.atan2(rotation[1,0], rotation[0,0])
+	else :
+		x = math.atan2(-rotation[1,2], rotation[1,1])
+		y = math.atan2(-rotation[2,0], sy)
+		z = 0
+	return np.array([x, y, z])*180/math.pi
 
 # calculates how many iterations is needed for RANSAC
 def ransac_iterations(w, p, n):
