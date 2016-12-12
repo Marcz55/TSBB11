@@ -29,10 +29,14 @@ def main(argv):
 	retval, rvecs, tvecs = cv2.solvePnP(threeD_corres, twoD_corres, camera_mtx, dist_Coeffs)
 	# project 3D points to image plane
 	imgpts, jac = cv2.projectPoints(threeD_corres, rvecs, tvecs, camera_mtx, dist_Coeffs)
-
+	n = 5
+	w = 0.45
+	p = 0.999
+	k, sd = ransac_iterations(w,p,n)
+	iteration = k + sd
 	#PnP Ransac
 	start = time.clock()
-	retval_ransac, rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs, iterationsCount = 100000, reprojectionError = 1)
+	retval_ransac, rvec_ransac, tvec_ransac, inliers = cv2.solvePnPRansac(threeD_corres,twoD_corres, camera_mtx, dist_Coeffs, iterationsCount = iteration, reprojectionError = 1)
 	end = time.clock()
 	imgpts_ransac, jac_ransac = cv2.projectPoints(threeD_corres,rvec_ransac,tvec_ransac,camera_mtx,dist_Coeffs)
 
@@ -121,6 +125,11 @@ def rotationMatrixToEulerAngles(rotation) :
  
     return np.array([x, y, z])*180/math.pi
 
+# calculates how many iterations is needed for RANSAC
+def ransac_iterations(w, p, n):
+	k = np.log(1 - p) / np.log(1 - w**n)
+	sd = np.sqrt(1 - w**n)/(w**n)
+	return int(np.ceil(k)), int(np.ceil(sd))
 
 if __name__ == "__main__":
 	main(sys.argv[1:])
