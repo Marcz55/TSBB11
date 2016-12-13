@@ -236,8 +236,3 @@ for it in range(0,numPointsFrom2):
 correspondence = 0.5*numTrueFrom1/numPointsFrom1 + 0.5*numTrueFrom2/numTrueFrom2
 
 print("Correspondence: " + str(correspondence))
-
-print("numTrueFrom1: " + str(numTrueFrom1))
-print("numPointsFrom1: " + str(numPointsFrom1))
-print("numTrueFrom2: " + str(numTrueFrom2))
-print("numPointsFrom2: " + str(numPointsFrom2))
