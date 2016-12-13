@@ -43,7 +43,7 @@ def corresponding_twoD_points(rendered_image, real_image):
 	kp2, des2 = sift.detectAndCompute(img2,None)
 
 	# FLANN parameters
-	FLANN_INDEX_KDTREE = 1i
+	FLANN_INDEX_KDTREE = 1
 	index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
 	search_params = dict(checks=100)   # or pass empty dictionary
 
