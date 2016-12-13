@@ -13,7 +13,7 @@ from random import randint
 #Start of setup-------------------------------------------------------------------------------------
 
 targetModelName = "teknikringen8"			#Name of model in Blender workspace
-saveFilepath = "C:\\CDIO\\Tagna_bilderYOLO\\"	#The filepath to which the rendered images will be saved
+saveFilepath = "C:\\CDIO\\Tagna_bilder\\"	#The filepath to which the rendered images will be saved
 batchName = "TRtest"						#The label given to the saved images
 depthStepLength = 50						#The step length of positions where the depth will be tested
 renderStepLength = 1						#The step length when iterating over the depth map
@@ -91,7 +91,6 @@ def getCameraIntrinsic(write):
     cameraIntrinsic[1][1] = -Scene.render.resolution_y/(2*tan(CameraData.angle/2))
     cameraIntrinsic[0][2] = Scene.render.resolution_x/2
     cameraIntrinsic[1][2] = Scene.render.resolution_y/2
-    #cameraIntrinsic.transpose()
     if (write):
         text_file = open("IntrinsicC.txt", "w")
         text_file.write(str(cameraIntrinsic[0][0]) + " " + str(cameraIntrinsic[0][1]) + " " + str(cameraIntrinsic[0][2]) + "\n" + str(cameraIntrinsic[1][0]) + " " + str(cameraIntrinsic[1][1]) + " " + str(cameraIntrinsic[1][2]) + "\n" + str(cameraIntrinsic[2][0]) + " " + str(cameraIntrinsic[2][1]) + " " + str(cameraIntrinsic[2][2]) + "\n")
