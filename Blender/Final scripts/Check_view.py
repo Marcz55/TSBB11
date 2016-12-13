@@ -30,17 +30,17 @@ from math import pi
 #Start of setup---------------------------------------------------------------------------
 
 targetModelName = "teknikringen8"			  #Name of model in Blender workspace
-cameraX = 224                               #X-position of camera 1
-cameraY = 60                                #Y-position of camera 1
-cameraTilt = 0                              #Tilt-angle of camera 1
-cameraAngle = 0                             #Angle around the z-axis of camera 1
-cameraHeight = 4                        #Height over the ground of camera 1
+cameraX = 211.5                               #X-position of camera 1
+cameraY = 139.3                                #Y-position of camera 1
+cameraTilt = 0.7                              #Tilt-angle of camera 1
+cameraAngle = 112.7                             #Angle around the z-axis of camera 1
+cameraHeight = 1.64                        #Height over the ground of camera 1
 
-cameraX_2 = 222                               #X-position of camera 2
-cameraY_2 = 60                                #Y-position of camera 2
-cameraTilt_2 = 0                              #Tilt-angle of camera 2
-cameraAngle_2 = 0                             #Angle around the z-axis of camera 2
-cameraHeight_2 = 4                        #Height over the ground of camera 2
+cameraX_2 = 204.66                               #X-position of camera 2
+cameraY_2 = 139.96                                #Y-position of camera 2
+cameraTilt_2 = 0.911                              #Tilt-angle of camera 2
+cameraAngle_2 = 92.29                             #Angle around the z-axis of camera 2
+cameraHeight_2 = 1.64                        #Height over the ground of camera 2
 
 pointCheckDensity = 10                        #How many pixels that separate each point in the image plane from which raycasting is done
 
@@ -233,6 +233,7 @@ for it in range(0,numPointsFrom2):
         numTrueFrom2 += 1
 
 #The mean of the amount of all visible points that are visible for both cameras
-correspondence = 0.5*numTrueFrom1/numPointsFrom1 + 0.5*numTrueFrom2/numTrueFrom2
+correspondence = 0.5*numTrueFrom1/numPointsFrom1 + 0.5*numTrueFrom2/numPointsFrom2
 
 print("Correspondence: " + str(correspondence))
+
