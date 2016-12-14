@@ -56,7 +56,7 @@ def moveAndRender(cameraX,cameraY,cameraTilt,cameraAngle,Scene,saveFilepath,name
     bpy.context.active_object.rotation_euler = [math.radians(90),math.radians(cameraTilt),math.radians(cameraAngle)]
     bpy.ops.render.render( write_still=True)
     image = bpy.data.images['Render Result']
-    image.save_render(saveFilepath + name + "_x" + str(cameraX) + "_y" + str(cameraY) + "_z" + str(depthCastGlobal[2]) + "_a" + str(cameraAngle) + "_t" + str(cameraTilt) + ".png", scene=Scene)
+    image.save_render(saveFilepath + name + "_x" + str(cameraX) + "_y" + str(cameraY) + "_z" + str(depthCastGlobal[2]) + cameraHeight + "_a" + str(cameraAngle) + "_t" + str(cameraTilt) + ".png", scene=Scene)
     
 
 #Converts the camera matrix to use the resolution in Blender.
