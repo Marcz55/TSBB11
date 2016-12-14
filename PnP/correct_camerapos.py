@@ -60,12 +60,16 @@ def main(argv):
 		#print "Mean reprojection error:", mean_error
 
 		#RANSAC Obtains the camera position 
-		cam_pose_ransac, camera_pose_ransac, rotation_matrix_ransac = calc_camera_pose(rvec_ransac, tvec_ransac)
+		cam_pose_ransac, camera_pose_ransac, rotation_matrix_ransac, not_rodrigues = calc_camera_pose(rvec_ransac, tvec_ransac)
 
 		euler_rotation = rotationMatrixToEulerAngles(rotation_matrix_ransac)
 
 		print "cam_pose_ransac:"
 		print cam_pose_ransac
+		print "rotation matrix:"
+		print rotation_matrix_ransac
+		print "not rodrigues rotation matrix"
+		print not_rodrigues
 		print "time to do ransac:", end-start
 		print "euler angles:", euler_rotation
 
@@ -103,21 +107,15 @@ def calc_camera_pose(rvec, tvec):
 	rmatrix = cv2.Rodrigues(np_rodrigues)[0]
 	cam_pose = -np.matrix(rmatrix).T * np.matrix(tvec)
 	camera_pose = -rmatrix.dot(tvec)
-	return cam_pose, camera_pose, rmatrix
+	return cam_pose, camera_pose, rmatrix, np_rodrigues
 
 # Calculates rotation matrix to euler angles The result is the same as MATLAB except the order of the euler angles ( x and z are swapped ).
 def rotationMatrixToEulerAngles(rotation):
-	sy = math.sqrt(rotation[0,0] * rotation[0,0] + rotation[1,0] * rotation[1,0])
-	singular = sy < 1e-6
 
-	if  not singular :
-		x = math.atan2(rotation[2,1] , rotation[2,2])
-		y = math.atan2(-rotation[2,0], sy)
-		z = math.atan2(rotation[1,0], rotation[0,0])
-	else :
-		x = math.atan2(-rotation[1,2], rotation[1,1])
-		y = math.atan2(-rotation[2,0], sy)
-		z = 0
+	x = math.atan2(rotation[2,1] , rotation[2,2])
+	y = math.atan2(-rotation[2,0], math.sqrt(rotation[2,1]*rotation[2,1] + rotation[2,2]*rotation[2,2]))
+	z = math.atan2(rotation[1,0], rotation[0,0])
+
 	return np.array([x, y, z])*180/math.pi
 
 # calculates how many iterations is needed for RANSAC

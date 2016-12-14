@@ -45,7 +45,7 @@ def resize_image(img, output_val):
 	tmp_img = resizeimage.resize_width(img, output_val)
 	width = tmp_img.size[0]
 	height = tmp_img.size[1]
-
+	'''
 	if height > width: # A long image
 		minY, maxY = min_max_values(height,output_val)
 		tmp_img = tmp_img.crop((0,minY,output_val,maxY))
@@ -55,7 +55,7 @@ def resize_image(img, output_val):
 		width = tmp_img.size[0]
 		minX, maxX = min_max_values(width,output_val)
 		tmp_img = tmp_img.crop((minX,0,maxX,output_val))
-
+	'''
 	return tmp_img
 	
 # Finds the difference between the other side of the image and outputval
