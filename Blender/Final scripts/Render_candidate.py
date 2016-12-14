@@ -20,13 +20,13 @@ from math import pi
 
 targetModelName = "teknikringen8"			    #Name of model in Blender workspace
 saveFilepath = "C:\\CDIO\\Skript\\Renderat\\"	#The filepath to which the rendered images will be saved
-cameraX = 228                                   #X-position of camera  
+cameraX = 240                                   #X-position of camera  
 cameraY = 60                                    #Y-position of camera
 cameraTilt = 2                                  #Tilt-angle of camera 
 cameraAngle = 22                                #Z-axis rotation of camera
 cameraHeight = 1                                #Height of camera over the ground
 dAngle = 30                                     #How much the rendered angle changes for each step in numAngles
-numAngles = 1                                   #The number of images taken in each direction from the center (total number of images taken becomes numAngles*2 + 1)
+numAngles = 0                                  #The number of images taken in each direction from the center (total number of images taken becomes numAngles*2 + 1)
 
 
 #Define the parameters for the camera used
@@ -56,7 +56,7 @@ def moveAndRender(cameraX,cameraY,cameraTilt,cameraAngle,Scene,saveFilepath,name
     bpy.context.active_object.rotation_euler = [math.radians(90),math.radians(cameraTilt),math.radians(cameraAngle)]
     bpy.ops.render.render( write_still=True)
     image = bpy.data.images['Render Result']
-    image.save_render(saveFilepath + name + "_x" + str(cameraX) + "_y" + str(cameraY) + "_z" + str(depthCastGlobal[2]) + cameraHeight + "_a" + str(cameraAngle) + "_t" + str(cameraTilt) + ".png", scene=Scene)
+    image.save_render(saveFilepath + name + "_x" + str(cameraX) + "_y" + str(cameraY) + "_z" + str(depthCastGlobal[2] + cameraHeight) + "_a" + str(cameraAngle) + "_t" + str(cameraTilt) + ".png", scene=Scene)
     
 
 #Converts the camera matrix to use the resolution in Blender.
